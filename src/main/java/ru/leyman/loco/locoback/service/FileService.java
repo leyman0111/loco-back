@@ -7,7 +7,7 @@ import java.io.FileNotFoundException;
 
 public interface FileService {
 
-    String upload(MultipartFile file, String filename);
+    String upload(MultipartFile file);
 
     Resource download(String filename) throws FileNotFoundException;
 

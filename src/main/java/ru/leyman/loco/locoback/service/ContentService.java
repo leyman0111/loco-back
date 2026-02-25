@@ -12,7 +12,8 @@ import ru.leyman.loco.locoback.domain.repo.ContentRepo;
 import ru.leyman.loco.locoback.domain.repo.PostRepo;
 
 import java.io.IOException;
-import java.util.UUID;
+
+import static java.util.Objects.requireNonNullElse;
 
 @Slf4j
 @Service
@@ -27,9 +28,9 @@ public class ContentService {
         var content = contentRepo.getReferenceById(id);
         try {
             return switch (size) {
-                case LARGE -> fileService.download(content.getLarge());
-                case MEDIUM -> fileService.download(content.getMedium());
-                case SMALL -> fileService.download(content.getSmall());
+                case LARGE -> fileService.download(requireNonNullElse(content.getLarge(), content.getOrigin()));
+                case MEDIUM -> fileService.download(requireNonNullElse(content.getMedium(), content.getOrigin()));
+                case SMALL -> fileService.download(requireNonNullElse(content.getSmall(), content.getOrigin()));
             };
         } catch (IOException e) {
             log.error("Error on downloading file with id={}", id);
@@ -39,7 +40,7 @@ public class ContentService {
 
     public void upload(Long postId, ContentType type,
                        MultipartFile file) {
-        var filename = fileService.upload(file, UUID.randomUUID().toString());
+        var filename = fileService.upload(file);
         var post = postRepo.getReferenceById(postId);
         var content = contentRepo.save(new Content(post, type, filename));
         contentRepo.save(content);

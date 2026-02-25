@@ -6,6 +6,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import ru.leyman.loco.locoback.service.FileService;
+import ru.leyman.loco.locoback.utils.FilenameUtil;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -19,11 +20,12 @@ import java.util.UUID;
 @Log4j2
 @Service
 public class LocalFileService implements FileService {
-    private static final String STORE_PATH = "../store/%s.docx";
+    private static final String STORE_PATH = "../store/%s.%s";
 
     @Override
-    public String upload(MultipartFile file, String filename) {
-        Path filePath = Path.of(Objects.requireNonNullElse(filename, getFilename()));
+    public String upload(MultipartFile file) {
+        var ext = FilenameUtil.getExtension(Objects.requireNonNull(file.getOriginalFilename()));
+        Path filePath = Path.of(getFilename(ext));
         try (InputStream in = file.getInputStream()) {
             Files.copy(in, filePath, StandardCopyOption.REPLACE_EXISTING);
             return filePath.toString();
@@ -45,8 +47,9 @@ public class LocalFileService implements FileService {
         }
     }
 
-    private String getFilename() {
-        return String.format(STORE_PATH, UUID.randomUUID());
+    private String getFilename(String extension) {
+        return String.format(STORE_PATH, UUID.randomUUID(),
+                Objects.requireNonNullElse(extension, "txt"));
     }
 
 }

@@ -3,10 +3,11 @@ package ru.leyman.loco.locoback.domain.entity;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import ru.leyman.loco.locoback.domain.enums.Locale;
 
-@Getter
 @Entity(name = "users")
+@Getter @Setter
 @NoArgsConstructor
 public class User {
 
@@ -26,7 +27,8 @@ public class User {
 
     private byte[] avatar;
 
-    public User(String externalId, String username, String name, String email, Locale locale) {
+    public User(String externalId, String username,
+                String name, String email, Locale locale) {
         this.externalId = externalId;
         this.username = username;
         this.name = name;
