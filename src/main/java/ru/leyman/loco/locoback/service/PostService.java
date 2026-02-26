@@ -36,14 +36,14 @@ public class PostService {
     }
 
     public PostPreview getPreview(Long id) {
-        var post = postRepo.getReferenceById(id);
+        var post = postRepo.findByIdAndState(id, PostState.PUBLISHED).orElseThrow();
         var contents = contentRepo.findAllByPost(post);
         var reactions = reactionRepo.findAllByPost(post);
         return postMapper.mapToPreview(post, contents, reactions);
     }
 
     public PostDetails getDetails(Long id) {
-        var post = postRepo.getReferenceById(id);
+        var post = postRepo.findByIdAndState(id, PostState.PUBLISHED).orElseThrow();
         var contents = contentRepo.findAllByPost(post);
         var reactions = reactionRepo.findAllByPost(post);
         var comments = commentRepo.findAllByPost(post);
@@ -51,19 +51,28 @@ public class PostService {
     }
 
     public PostDto create() {
-        var post = new Post(userService.getCurrentUser());
-        return postMapper.map(postRepo.save(post));
+        var user = userService.getCurrentUser();
+        return postRepo.findAllByAuthorAndState(user, PostState.CREATED).stream().findFirst()
+                .map(post -> {
+                    var contents = contentRepo.findAllByPost(post);
+                    return postMapper.map(post, contents);
+                })
+                .orElseGet(() -> {
+                    var post = postRepo.save(new Post(user));
+                    return postMapper.map(post);
+                });
     }
 
     public PostDto update(PostDto postDto) {
-        var post = postRepo.getReferenceById(postDto.id());
         var user = userService.getCurrentUser();
-        if (!post.getAuthor().equals(user)) {
-            throw new RuntimeException();
-        }
-        postMapper.map(post, postDto);
-        post.setState(PostState.PUBLISHED);
-        return postMapper.map(postRepo.save(post));
+        return postRepo.findAllByAuthorAndState(user, PostState.CREATED).stream()
+                .filter(post -> post.getId().equals(postDto.id())).findFirst()
+                .map(post -> {
+                    postMapper.map(post, postDto);
+                    post.setState(PostState.PUBLISHED);
+                    return postMapper.map(postRepo.save(post));
+                })
+                .orElseThrow();
     }
 
     public Post get(Long id) {

@@ -47,6 +47,16 @@ public class LocalFileService implements FileService {
         }
     }
 
+    @Override
+    public void delete(String filename) {
+        Path filePath = Path.of(filename);
+        try {
+            Files.delete(filePath);
+        } catch (IOException e) {
+            log.error("Error on deleting file={}", filename);
+        }
+    }
+
     private String getFilename(String extension) {
         return String.format(STORE_PATH, UUID.randomUUID(),
                 Objects.requireNonNullElse(extension, "txt"));

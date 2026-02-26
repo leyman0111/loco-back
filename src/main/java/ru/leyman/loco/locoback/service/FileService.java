@@ -11,4 +11,6 @@ public interface FileService {
 
     Resource download(String filename) throws FileNotFoundException;
 
+    void delete(String filename);
+
 }

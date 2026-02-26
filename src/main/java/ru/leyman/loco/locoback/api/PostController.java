@@ -35,7 +35,7 @@ public class PostController {
         return service.getDetails(id);
     }
 
-    @Operation(description = "Создание поста")
+    @Operation(description = "Получение черновика поста, а при отсутствии - создание")
     @PostMapping
     public PostDto create() {
         return service.create();

@@ -20,6 +20,8 @@ public interface PostMapper {
 
     PostDto map(Post post);
 
+    PostDto map(Post post, List<Content> contents);
+
     PostMark mapToMark(Post post);
 
     PostPreview mapToPreview(Post post, List<Content> contents,

@@ -26,10 +26,17 @@ public class ContentController {
     }
 
     @Operation(description = "Загрузка файла контента")
-    @PostMapping("{postId}")
-    public void upload(@PathVariable Long postId, @RequestParam ContentType type,
+    @PostMapping
+    public void upload(@RequestParam Long postId,
+                       @RequestParam ContentType type,
                        @RequestBody MultipartFile file) {
         service.upload(postId, type, file);
+    }
+
+    @Operation(description = "Удаление контента")
+    @DeleteMapping("{id}")
+    public void delete(@PathVariable Long id) {
+        service.delete(id);
     }
 
 }
