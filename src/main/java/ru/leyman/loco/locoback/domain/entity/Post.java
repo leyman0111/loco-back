@@ -7,7 +7,6 @@ import lombok.Setter;
 import ru.leyman.loco.locoback.domain.enums.PostCategory;
 import ru.leyman.loco.locoback.domain.enums.PostState;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
@@ -31,7 +30,7 @@ public class Post {
     private LocalDateTime created;
     private String text;
     private PostCategory category;
-    private BigDecimal latitude;
-    private BigDecimal longitude;
+    private Float latitude;
+    private Float longitude;
 
 }
