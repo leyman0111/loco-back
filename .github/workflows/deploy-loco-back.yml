@@ -21,20 +21,23 @@ jobs:
         with:
           distribution: temurin
           java-version: "21"
+          cache: maven
 
-      - name: Build bootJar
+      - name: Build jar (Maven)
         run: |
           set -euxo pipefail
-          ./gradlew clean bootJar
-          ls -la build/libs
+          mvn -v
+          mvn -DskipTests package
+          ls -la target
 
       - name: Prepare loco-back.jar
         run: |
           set -euxo pipefail
-          JAR="$(ls -1 build/libs/*.jar | grep -v -- '-plain\.jar$' | head -n 1)"
+          # Берём jar, который НЕ original-*.jar (у spring-boot-maven-plugin бывает original)
+          JAR="$(ls -1 target/*.jar | grep -v '/original-' | head -n 1)"
           echo "Using jar: $JAR"
-          cp -f "$JAR" build/libs/loco-back.jar
-          ls -la build/libs/loco-back.jar
+          cp -f "$JAR" target/loco-back.jar
+          ls -la target/loco-back.jar
 
       - name: Upload loco-back.jar to server
         uses: appleboy/scp-action@v1
@@ -42,9 +45,9 @@ jobs:
           host: ${{ secrets.SERVER_HOST }}
           username: ${{ secrets.SERVER_USER }}
           password: ${{ secrets.SERVER_PASSWORD }}
-          source: build/libs/loco-back.jar
+          source: target/loco-back.jar
           target: /opt/loco-back/
-          strip_components: 2
+          strip_components: 1
 
       - name: Restart loco-back service
         uses: appleboy/ssh-action@v1
@@ -59,8 +62,6 @@ jobs:
             SERVICE="loco-back.service"
 
             test -f "$JAR"
-
-            # чтобы user loco-back точно мог читать jar
             chmod 644 "$JAR"
             chown root:root "$JAR"
 
