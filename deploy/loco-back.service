@@ -1,0 +1,22 @@
+[Unit]
+Description=Loco-Back Service
+After=network.target
+
+[Service]
+Type=simple
+User=loco-back
+Group=loco-back
+WorkingDirectory=/opt/loco-back
+EnvironmentFile=/etc/loco-back.env
+
+ExecStart=/usr/bin/java -jar /opt/loco-back/loco-back.jar
+
+Restart=always
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

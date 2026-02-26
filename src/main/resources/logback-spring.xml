@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+
+    <springProperty name="APP" source="spring.application.name" defaultValue="loco-back"/>
+
+    <!-- По умолчанию (локально): консоль -->
+    <springProfile name="!prod">
+        <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
+        <include resource="org/springframework/boot/logging/logback/console-appender.xml"/>
+
+        <root level="INFO">
+            <appender-ref ref="CONSOLE"/>
+        </root>
+    </springProfile>
+
+    <!-- PROD: файлы с ротацией 1 день = 1 файл, хранение 30 дней -->
+    <springProfile name="prod">
+
+        <property name="LOG_DIR" value="/var/log/${APP}"/>
+        <property name="LOG_FILE" value="${LOG_DIR}/${APP}.log"/>
+
+        <appender name="ROLLING" class="ch.qos.logback.core.rolling.RollingFileAppender">
+            <file>${LOG_FILE}</file>
+
+            <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+                <!-- один день = один файл -->
+                <fileNamePattern>${LOG_DIR}/${APP}.%d{yyyy-MM-dd}.log</fileNamePattern>
+                <maxHistory>30</maxHistory>
+            </rollingPolicy>
+
+            <encoder>
+                <pattern>%d{HH:mm:ss.SSS} %-5level %logger{36} - %msg%n</pattern>
+                <charset>UTF-8</charset>
+            </encoder>
+        </appender>
+
+        <root level="INFO">
+            <appender-ref ref="ROLLING"/>
+        </root>
+    </springProfile>
+
+</configuration>
