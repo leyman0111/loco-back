@@ -1,0 +1,136 @@
+name: Provision Loco-Back Server
+
+on:
+  workflow_dispatch:
+
+jobs:
+  provision:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Provision server
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          password: ${{ secrets.SERVER_PASSWORD }}
+          script: |
+            set -euxo pipefail
+
+            APP="loco-back"
+            APP_DIR="/opt/${APP}"
+            LOG_DIR="/var/log/${APP}"
+            ENV_FILE="/etc/${APP}.env"
+
+            echo "[1/7] Install Java 21 runtime"
+            apt-get update
+            apt-get install -y openjdk-21-jre-headless
+            java -version
+
+            echo "[2/7] Ensure service user exists"
+            id -u "${APP}" >/dev/null 2>&1 || useradd -r -s /usr/sbin/nologin -d /nonexistent "${APP}"
+
+            echo "[3/7] Create directories"
+            mkdir -p "${APP_DIR}" "${LOG_DIR}"
+            chown root:root "${APP_DIR}"
+            chmod 755 "${APP_DIR}"
+            chown "${APP}:${APP}" "${LOG_DIR}"
+
+            echo "[4/7] Ensure PostgreSQL is available"
+            if ! command -v psql >/dev/null 2>&1; then
+              echo "ERROR: psql not found. PostgreSQL must already be installed on the server."
+              exit 1
+            fi
+
+            echo "[5/7] Create DB role & database if needed"
+            DB_NAME="loco_back"
+            DB_USER="loco_back"
+            DB_PASS='${{ secrets.LOCO_BACK_DB_PASSWORD }}'   # Важно: пароль не должен содержать одинарных кавычек
+
+            sudo -u postgres psql -tc "SELECT 1 FROM pg_roles WHERE rolname='${DB_USER}'" | grep -q 1 || \
+              sudo -u postgres psql -c "CREATE ROLE ${DB_USER} WITH LOGIN PASSWORD '${DB_PASS}'"
+
+            sudo -u postgres psql -tc "SELECT 1 FROM pg_database WHERE datname='${DB_NAME}'" | grep -q 1 || \
+              sudo -u postgres psql -c "CREATE DATABASE ${DB_NAME} OWNER ${DB_USER}"
+
+            echo "[6/7] Create ${ENV_FILE}"
+            cat > "${ENV_FILE}" <<EOF
+            # Spring profile (если используешь)
+            SPRING_PROFILES_ACTIVE=prod
+
+            # DB (application.yaml uses DB_URL/DB_USERNAME/DB_PASSWORD/DB_SCHEMA)
+            DB_URL=jdbc:postgresql://127.0.0.1:5432/${DB_NAME}
+            DB_USERNAME=${DB_USER}
+            DB_PASSWORD=${DB_PASS}
+            DB_SCHEMA=${{ secrets.LOCO_BACK_DB_SCHEMA }}
+
+            # OAuth/JWT issuer
+            YANDEX_ISSUER_URL=${{ secrets.YANDEX_ISSUER_URL }}
+
+            # Yandex client creds
+            YANDEX_CLIENT_ID=${{ secrets.YANDEX_CLIENT_ID }}
+            YANDEX_CLIENT_SECRET=${{ secrets.YANDEX_CLIENT_SECRET }}
+            EOF
+
+            chown root:root "${ENV_FILE}"
+            chmod 600 "${ENV_FILE}"
+
+            echo "[7/7] Done"
+
+      - name: Upload systemd unit
+        uses: appleboy/scp-action@v1
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          password: ${{ secrets.SERVER_PASSWORD }}
+          source: deploy/loco-back.service
+          target: /etc/systemd/system/
+          strip_components: 1
+
+      - name: Enable service (do not start)
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          password: ${{ secrets.SERVER_PASSWORD }}
+          script: |
+            set -euxo pipefail
+            systemctl daemon-reload
+            systemctl enable loco-back.service
+
+      - name: Final verification
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          password: ${{ secrets.SERVER_PASSWORD }}
+          script: |
+            set -euxo pipefail
+
+            echo "=== Java ==="
+            java -version
+
+            echo "=== User ==="
+            id loco-back
+
+            echo "=== Dirs ==="
+            ls -la /opt/loco-back || true
+            ls -la /var/log/loco-back || true
+
+            echo "=== Jar (may be missing before deploy) ==="
+            ls -la /opt/loco-back/loco-back.jar || true
+
+            echo "=== Env file perms ==="
+            ls -la /etc/loco-back.env || true
+
+            echo "=== Unit ==="
+            systemctl cat loco-back.service || true
+            systemctl is-enabled loco-back.service || true
+            systemctl is-active loco-back.service || true
+            systemctl status loco-back.service --no-pager || true
+
+            echo "=== Recent logs (may be empty) ==="
+            journalctl -u loco-back.service -n 50 --no-pager || true
