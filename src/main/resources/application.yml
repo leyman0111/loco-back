@@ -21,3 +21,4 @@ spring:
 yandex:
   client-id: ${YANDEX_CLIENT_ID:yandex-client-id}
   client-secret: ${YANDEX_CLIENT_SECRET:yandex-client-secret}
+  exchange-url: https://login.yandex.ru/info?format=jwt

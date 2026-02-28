@@ -27,7 +27,7 @@ public class SecurityConfig {
     public SecurityFilterChain security(HttpSecurity httpSecurity) {
         return httpSecurity
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(HttpMethod.GET, "/swagger-ui/**", "/v3/api-docs/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/swagger-ui/**", "/v3/api-docs/**", "/auth/yandex").permitAll()
                         .anyRequest().authenticated()
                 )
                 .oauth2ResourceServer(auth2 ->
