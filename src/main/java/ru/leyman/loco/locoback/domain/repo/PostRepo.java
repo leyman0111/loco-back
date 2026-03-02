@@ -18,7 +18,8 @@ public interface PostRepo extends JpaRepository<Post, Long> {
             value = "WITH PostDistances AS (SELECT p.id AS pid, (6371 * acos(" +
                     "cos(radians(:latitude)) * cos(radians(p.latitude)) * cos(radians(p.longitude) - radians(:longitude)) + " +
                     "sin(radians(:latitude)) * sin(radians(p.latitude)) )) AS distance_km " +
-                    "FROM post p WHERE p.latitude BETWEEN (:latitude - (:maxDistance / 111.0)) AND (:latitude + (:maxDistance / 111.0)) " +
+                    "FROM post p WHERE p.category IN (:categories) " +
+                    "AND p.latitude BETWEEN (:latitude - (:maxDistance / 111.0)) AND (:latitude + (:maxDistance / 111.0)) " +
                     "AND p.longitude BETWEEN (:longitude - (:maxDistance / (111.0 * COS(RADIANS(:latitude))))) " +
                     "AND (:longitude + (:maxDistance / (111.0 * COS(RADIANS(:latitude))))) AND p.state = 2) " +
                     "SELECT * FROM post p JOIN PostDistances d ON p.id = pid " +

@@ -21,7 +21,8 @@ public class ContentController {
 
     @Operation(description = "Выгрузка файла контента")
     @GetMapping(value = "{id}", produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
-    public @ResponseBody Resource download(@PathVariable Long id, @RequestParam ContentSize size) {
+    public @ResponseBody Resource download(@PathVariable Long id,
+                                           @RequestParam(required = false) ContentSize size) {
         return service.download(id, size);
     }
 

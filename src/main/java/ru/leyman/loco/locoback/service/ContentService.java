@@ -13,6 +13,7 @@ import ru.leyman.loco.locoback.domain.enums.PostState;
 import ru.leyman.loco.locoback.domain.repo.ContentRepo;
 
 import java.io.IOException;
+import java.util.Objects;
 
 import static java.util.Objects.requireNonNullElse;
 
@@ -29,6 +30,9 @@ public class ContentService {
     public Resource download(Long id, ContentSize size) {
         var content = contentRepo.getReferenceById(id);
         try {
+            if (Objects.isNull(size)) {
+                return fileService.download(content.getOrigin());
+            }
             return switch (size) {
                 case LARGE -> fileService.download(requireNonNullElse(content.getLarge(), content.getOrigin()));
                 case MEDIUM -> fileService.download(requireNonNullElse(content.getMedium(), content.getOrigin()));
