@@ -20,8 +20,8 @@ public class ReactionController {
 
     @Operation(description = "Создание реакции")
     @PostMapping
-    public ReactionDto create(@RequestBody ReactionDto reactionDto) {
-        return service.create(reactionDto);
+    public ReactionDto upsert(@RequestBody ReactionDto reactionDto) {
+        return service.upsert(reactionDto);
     }
 
 }
