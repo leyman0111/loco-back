@@ -10,6 +10,7 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 import ru.leyman.loco.locoback.domain.dto.auth.AuthServer;
 import ru.leyman.loco.locoback.domain.dto.auth.VkUserInfo;
+import ru.leyman.loco.locoback.domain.dto.auth.VkUserInfoResponse;
 import tools.jackson.databind.ObjectMapper;
 
 import java.nio.charset.StandardCharsets;
@@ -60,9 +61,9 @@ public class VkOAuthService extends AbstractOAuthService implements OAuthService
         body.add("access_token", accessToken);
         var headers = headers();
         var request = new HttpEntity<>(body, headers);
-        ResponseEntity<VkUserInfo> response = authClient.exchange(
-                infoUrl, HttpMethod.POST, request, VkUserInfo.class);
-        var userInfo = response.getBody();
+        ResponseEntity<VkUserInfoResponse> response = authClient.exchange(
+                infoUrl, HttpMethod.POST, request, VkUserInfoResponse.class);
+        VkUserInfo userInfo = response.getBody().user();
         var key = Keys.hmacShaKeyFor(clientSecret.getBytes(StandardCharsets.UTF_8));
         var login = userInfo.email().split("@")[0];
         return Jwts.builder()

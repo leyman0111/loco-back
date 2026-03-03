@@ -27,15 +27,18 @@ public class SecurityConfig {
     private final YandexJwtAuthenticationConverter yandexJwtAuthenticationConverter;
 
     @Value("${yandex.client-secret}")
-    public String yandexClientSecret;
+    private String yandexClientSecret;
+    @Value("${yandex.issuer}")
+    private String yandexIssuer;
+    @Value("${vk.issuer}")
+    private String vkIssuer;
 
     @Bean
     public SecurityFilterChain security(HttpSecurity httpSecurity) {
         return httpSecurity
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.GET, "/swagger-ui/**", "/v3/api-docs/**", "/auth/**").permitAll()
-                        .anyRequest().authenticated()
-                )
+                        .anyRequest().authenticated())
                 .oauth2ResourceServer(auth2 ->
                         auth2.jwt(jwt -> jwt.jwtAuthenticationConverter(yandexJwtAuthenticationConverter)))
                 .build();

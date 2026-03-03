@@ -26,6 +26,7 @@ yandex:
   client-secret: ${YANDEX_CLIENT_SECRET:yandex-client-secret}
   client-id: ${YANDEX_CLIENT_ID:yandex-client-id}
   info-url: https://login.yandex.ru/info?format=jwt
+  issuer: login.yandex.ru
 vk:
   exchange-url: https://id.vk.ru/oauth2/auth
   redirect-uri: ${VK_REDIRECT_URI:vk-redirect-uri}
