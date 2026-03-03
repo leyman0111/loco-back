@@ -19,7 +19,7 @@ public class AuthController {
 
     @Operation(description = "Авторизация через OAuth2")
     @GetMapping("{authServer}")
-    public String authorizeWithYandex(@PathVariable AuthServer authServer, @RequestParam(required = false) Map<String, String> params) {
+    public String authorizeWithYandex(@PathVariable AuthServer authServer, @RequestParam Map<String, String> params) {
         return authServices.get(authServer).exchangeForAccessToken(params);
     }
 
