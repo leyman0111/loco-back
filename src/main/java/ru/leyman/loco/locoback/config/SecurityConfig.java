@@ -10,9 +10,15 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.web.SecurityFilterChain;
+import ru.leyman.loco.locoback.domain.dto.auth.AuthServer;
+import ru.leyman.loco.locoback.service.security.OAuthService;
 import ru.leyman.loco.locoback.service.security.YandexJwtAuthenticationConverter;
 
 import java.nio.charset.StandardCharsets;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Configuration
 @RequiredArgsConstructor
@@ -27,7 +33,7 @@ public class SecurityConfig {
     public SecurityFilterChain security(HttpSecurity httpSecurity) {
         return httpSecurity
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(HttpMethod.GET, "/swagger-ui/**", "/v3/api-docs/**", "/auth/yandex").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/swagger-ui/**", "/v3/api-docs/**", "/auth/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .oauth2ResourceServer(auth2 ->
@@ -36,9 +42,14 @@ public class SecurityConfig {
     }
 
     @Bean
-    public JwtDecoder jwtDecoder() {
+    public JwtDecoder yandexJwtDecoder() {
         var key = Keys.hmacShaKeyFor(yandexClientSecret.getBytes(StandardCharsets.UTF_8));
         return NimbusJwtDecoder.withSecretKey(key).build();
+    }
+
+    @Bean
+    public Map<AuthServer, OAuthService> oAuthServices(List<OAuthService> oAuthServices) {
+        return oAuthServices.stream().collect(Collectors.toMap(OAuthService::authServer, Function.identity()));
     }
 
 }

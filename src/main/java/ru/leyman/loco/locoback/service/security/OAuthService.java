@@ -1,7 +1,13 @@
 package ru.leyman.loco.locoback.service.security;
 
+import ru.leyman.loco.locoback.domain.dto.auth.AuthServer;
+
+import java.util.Map;
+
 public interface OAuthService {
 
-    String exchangeForAccessToken(String authCode);
+    AuthServer authServer();
+
+    String exchangeForAccessToken(Map<String, String> params);
 
 }

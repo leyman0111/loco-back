@@ -22,7 +22,14 @@ spring:
       max-file-size: 10MB
 
 yandex:
-  client-id: ${YANDEX_CLIENT_ID:yandex-client-id}
-  client-secret: ${YANDEX_CLIENT_SECRET:yandex-client-secret}
   exchange-url: https://oauth.yandex.ru/token
+  client-secret: ${YANDEX_CLIENT_SECRET:yandex-client-secret}
+  client-id: ${YANDEX_CLIENT_ID:yandex-client-id}
   info-url: https://login.yandex.ru/info?format=jwt
+vk:
+  exchange-url: https://id.vk.ru/oauth2/auth
+  redirect-uri: ${VK_REDIRECT_URI:vk-redirect-uri}
+  client-secret: ${VK_CLIENT_SECRET:vk-client-secret}
+  client-id: ${VK_CLIENT_ID:vk-client-id}
+  info-url: https://id.vk.ru/oauth2/user_info
+  issuer: id.vk.com
