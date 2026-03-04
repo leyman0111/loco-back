@@ -12,11 +12,6 @@ spring:
     properties.hibernate:
       format_sql: true
       default_schema: ${DB_SCHEMA:loco}
-  security:
-    oauth2:
-      resourceserver:
-        jwt:
-          issuer-uri: ${YANDEX_ISSUER_URL:https://auth.yandex.cloud}
   servlet:
     multipart:
       max-file-size: 10MB
@@ -26,11 +21,11 @@ yandex:
   client-secret: ${YANDEX_CLIENT_SECRET:yandex-client-secret}
   client-id: ${YANDEX_CLIENT_ID:yandex-client-id}
   info-url: https://login.yandex.ru/info?format=jwt
-  issuer: login.yandex.ru
+  issuer-uri: ${YANDEX_ISSUER_URL:login.yandex.ru}
 vk:
   exchange-url: https://id.vk.ru/oauth2/auth
   redirect-uri: ${VK_REDIRECT_URI:vk-redirect-uri}
   client-secret: ${VK_CLIENT_SECRET:vk-client-secret}
   client-id: ${VK_CLIENT_ID:vk-client-id}
   info-url: https://id.vk.ru/oauth2/user_info
-  issuer: id.vk.com
+  issuer-uri: ${VK_ISSUER:VK}

@@ -1,16 +1,19 @@
 package ru.leyman.loco.locoback.service.security;
 
 import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.*;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
-import ru.leyman.loco.locoback.domain.dto.auth.AuthServer;
-import ru.leyman.loco.locoback.domain.dto.auth.VkUserInfo;
-import ru.leyman.loco.locoback.domain.dto.auth.VkUserInfoResponse;
+import ru.leyman.loco.locoback.domain.dto.vk.VkUserInfo;
+import ru.leyman.loco.locoback.domain.dto.vk.VkUserInfoResponse;
+import ru.leyman.loco.locoback.domain.enums.AuthServer;
 import tools.jackson.databind.ObjectMapper;
 
 import java.nio.charset.StandardCharsets;
@@ -28,7 +31,7 @@ public class VkOAuthService extends AbstractOAuthService implements OAuthService
     private String clientId;
     @Value("${vk.info-url}")
     private String infoUrl;
-    @Value("${vk.issuer}")
+    @Value("${vk.issuer-uri}")
     private String issuer;
 
     public VkOAuthService(RestTemplate authClient, ObjectMapper objectMapper,
@@ -55,7 +58,8 @@ public class VkOAuthService extends AbstractOAuthService implements OAuthService
     }
 
     @Override
-    public String exchangeForJwtUserInfo(String accessToken) {
+    public String getJwtUserInfo(String exchangeResponseBody) {
+        var accessToken = objectMapper.readTree(exchangeResponseBody).get("access_token").asString();
         MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
         body.add("client_id", clientId);
         body.add("access_token", accessToken);
@@ -73,7 +77,7 @@ public class VkOAuthService extends AbstractOAuthService implements OAuthService
                         "login", login,
                         "email", userInfo.email(),
                         "name", userInfo.first_name()))
-                .signWith(key)
+                .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
     }
 }

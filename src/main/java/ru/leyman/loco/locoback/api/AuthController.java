@@ -4,7 +4,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
-import ru.leyman.loco.locoback.domain.dto.auth.AuthServer;
+import ru.leyman.loco.locoback.domain.enums.AuthServer;
 import ru.leyman.loco.locoback.service.security.OAuthService;
 
 import java.util.Map;

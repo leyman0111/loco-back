@@ -6,7 +6,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
-import ru.leyman.loco.locoback.domain.dto.auth.AuthServer;
+import ru.leyman.loco.locoback.domain.enums.AuthServer;
 import tools.jackson.databind.ObjectMapper;
 
 import java.util.Map;
@@ -42,7 +42,8 @@ public class YandexOAuthService extends AbstractOAuthService implements OAuthSer
     }
 
     @Override
-    public String exchangeForJwtUserInfo(String accessToken) {
+    public String getJwtUserInfo(String exchangeResponseBody) {
+        var accessToken = objectMapper.readTree(exchangeResponseBody).get("access_token").asString();
         var headers = new HttpHeaders();
         headers.set("Authorization", "OAuth " + accessToken);
         var response = authClient.exchange(infoUrl, HttpMethod.GET,

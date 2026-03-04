@@ -22,14 +22,12 @@ public abstract class AbstractOAuthService {
         var request = new HttpEntity<>(body, headers);
         ResponseEntity<String> response = authClient.exchange(
                 exchangeUrl, HttpMethod.POST, request, String.class);
-        var authResponse = response.getBody();
-        var accessToken = objectMapper.readTree(authResponse).get("access_token").asString();
-        return exchangeForJwtUserInfo(accessToken);
+        return getJwtUserInfo(response.getBody());
     }
 
     protected abstract MultiValueMap<String, String> body(Map<String, String> params);
 
-    protected abstract String exchangeForJwtUserInfo(String accessToken);
+    protected abstract String getJwtUserInfo(String exchangeResponseBody);
 
     protected HttpHeaders headers() {
         var headers = new HttpHeaders();

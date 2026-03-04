@@ -1,6 +1,6 @@
 package ru.leyman.loco.locoback.service.security;
 
-import ru.leyman.loco.locoback.domain.dto.auth.AuthServer;
+import ru.leyman.loco.locoback.domain.enums.AuthServer;
 
 import java.util.Map;
 
