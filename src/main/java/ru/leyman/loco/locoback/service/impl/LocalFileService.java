@@ -1,6 +1,6 @@
 package ru.leyman.loco.locoback.service.impl;
 
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
@@ -17,7 +17,7 @@ import java.nio.file.StandardCopyOption;
 import java.util.Objects;
 import java.util.UUID;
 
-@Log4j2
+@Slf4j
 @Service
 public class LocalFileService implements FileService {
     private static final String STORE_PATH = "../store/%s.%s";

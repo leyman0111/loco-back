@@ -3,6 +3,7 @@ package ru.leyman.loco.locoback.service.security;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
@@ -20,6 +21,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.UUID;
 
+@Slf4j
 @Service
 public class VkOAuthService extends AbstractOAuthService implements OAuthService {
 
@@ -65,6 +67,7 @@ public class VkOAuthService extends AbstractOAuthService implements OAuthService
         body.add("access_token", accessToken);
         var headers = headers();
         var request = new HttpEntity<>(body, headers);
+        log.info("Trying to exchange for userInfo");
         ResponseEntity<VkUserInfoResponse> response = authClient.exchange(
                 infoUrl, HttpMethod.POST, request, VkUserInfoResponse.class);
         VkUserInfo userInfo = response.getBody().user();

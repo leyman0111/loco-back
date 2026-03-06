@@ -3,6 +3,7 @@ package ru.leyman.loco.locoback.api;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.Resource;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
@@ -11,6 +12,7 @@ import ru.leyman.loco.locoback.domain.enums.ContentSize;
 import ru.leyman.loco.locoback.domain.enums.ContentType;
 import ru.leyman.loco.locoback.service.ContentService;
 
+@Slf4j
 @Tag(name = "Контент", description = "Раздел управления контентом")
 @RestController
 @RequestMapping("contents")
@@ -23,6 +25,7 @@ public class ContentController {
     @GetMapping(value = "{id}", produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
     public @ResponseBody Resource download(@PathVariable Long id,
                                            @RequestParam(required = false) ContentSize size) {
+        log.info("Received download by id={}, size={}", id, size);
         return service.download(id, size);
     }
 
@@ -31,12 +34,14 @@ public class ContentController {
     public void upload(@RequestParam Long postId,
                        @RequestParam ContentType type,
                        @RequestBody MultipartFile file) {
+        log.info("Received upload by postId={}, type={}", postId, type);
         service.upload(postId, type, file);
     }
 
     @Operation(description = "Удаление контента")
     @DeleteMapping("{id}")
     public void delete(@PathVariable Long id) {
+        log.info("Received delete by id={}", id);
         service.delete(id);
     }
 

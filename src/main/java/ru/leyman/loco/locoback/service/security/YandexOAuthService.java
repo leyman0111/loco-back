@@ -1,5 +1,6 @@
 package ru.leyman.loco.locoback.service.security;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
@@ -11,6 +12,7 @@ import tools.jackson.databind.ObjectMapper;
 
 import java.util.Map;
 
+@Slf4j
 @Service
 public class YandexOAuthService extends AbstractOAuthService implements OAuthService{
 
@@ -46,6 +48,7 @@ public class YandexOAuthService extends AbstractOAuthService implements OAuthSer
         var accessToken = objectMapper.readTree(exchangeResponseBody).get("access_token").asString();
         var headers = new HttpHeaders();
         headers.set("Authorization", "OAuth " + accessToken);
+        log.info("Trying to exchange for userInfo");
         var response = authClient.exchange(infoUrl, HttpMethod.GET,
                 new HttpEntity<>(headers), String.class);
         return response.getBody();

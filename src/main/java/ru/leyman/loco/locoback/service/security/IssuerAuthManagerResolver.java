@@ -3,7 +3,7 @@ package ru.leyman.loco.locoback.service.security;
 import com.nimbusds.jwt.SignedJWT;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationManagerResolver;
@@ -14,7 +14,7 @@ import java.util.Objects;
 
 import static org.springframework.util.StringUtils.hasText;
 
-@Log4j2
+@Slf4j
 @RequiredArgsConstructor
 public class IssuerAuthManagerResolver implements AuthenticationManagerResolver<HttpServletRequest> {
     private static final AuthenticationManager DO_NOTHING = auth -> auth;
@@ -27,6 +27,7 @@ public class IssuerAuthManagerResolver implements AuthenticationManagerResolver<
         if (!hasText(token))
             return DO_NOTHING;
         var issuer = getIssuer(token);
+        log.info("Issuer={} found from token", issuer);
         if (!hasText(issuer)) {
             return DO_NOTHING;
         }
