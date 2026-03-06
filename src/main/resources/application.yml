@@ -10,7 +10,7 @@ spring:
     driver-class-name: org.postgresql.Driver
     hikari.schema: ${DB_SCHEMA:loco}
   jpa:
-    hibernate.ddl-auto: "${HIBERNATE_MIGRATION:none}
+    hibernate.ddl-auto: ${HIBERNATE_MIGRATION:none}
     show-sql: false
     properties.hibernate:
       format_sql: true
