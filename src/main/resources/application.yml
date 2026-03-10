@@ -34,4 +34,4 @@ vk:
   issuer-uri: ${VK_ISSUER:VK}
 
 filestore:
-  local-store-path: ${LOCAL_STORE_PATH:../store/}}
+  local-store-path: ${LOCAL_STORE_PATH:../store/}
