@@ -3,6 +3,12 @@ name: Deploy Loco-Back on main push
 on:
   push:
     branches: [main]
+  workflow_dispatch:
+    inputs:
+      reason:
+        description: 'Ручной deploy'
+        required: false
+        type: string
 
 concurrency:
   group: loco-back-deploy
