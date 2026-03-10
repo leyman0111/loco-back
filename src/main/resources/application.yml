@@ -32,3 +32,6 @@ vk:
   client-id: ${VK_CLIENT_ID:vk-client-id}
   info-url: https://id.vk.ru/oauth2/user_info
   issuer-uri: ${VK_ISSUER:VK}
+
+filestore:
+  local-store-path: ${LOCAL_STORE_PATH:../store/}}

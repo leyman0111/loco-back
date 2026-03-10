@@ -1,6 +1,7 @@
 package ru.leyman.loco.locoback.service.impl;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
@@ -20,7 +21,9 @@ import java.util.UUID;
 @Slf4j
 @Service
 public class LocalFileService implements FileService {
-    private static final String STORE_PATH = "../store/%s.%s";
+
+    @Value("${filestore.local-store-path}")
+    private String storePath;
 
     @Override
     public String upload(MultipartFile file) {
@@ -30,7 +33,8 @@ public class LocalFileService implements FileService {
             Files.copy(in, filePath, StandardCopyOption.REPLACE_EXISTING);
             return filePath.toString();
         } catch (IOException e) {
-            throw new RuntimeException("Error on saving file: " + e.getMessage());
+            log.error("Can't upload file", e);
+            throw new RuntimeException("Error on saving file: " + e);
         }
     }
 
@@ -42,7 +46,7 @@ public class LocalFileService implements FileService {
         } catch (FileNotFoundException e) {
             throw e;
         } catch (IOException e) {
-            log.error("Can't download file {}, caused of {}", filename, e.getMessage());
+            log.error("Can't download file {}", filename, e);
             return null;
         }
     }
@@ -53,12 +57,12 @@ public class LocalFileService implements FileService {
         try {
             Files.delete(filePath);
         } catch (IOException e) {
-            log.error("Error on deleting file={}", filename);
+            log.error("Error on deleting file={}", filename, e);
         }
     }
 
     private String getFilename(String extension) {
-        return String.format(STORE_PATH, UUID.randomUUID(),
+        return String.format(storePath + "%s.%s", UUID.randomUUID(),
                 Objects.requireNonNullElse(extension, "txt"));
     }
 
