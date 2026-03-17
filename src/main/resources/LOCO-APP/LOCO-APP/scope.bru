@@ -1,0 +1,29 @@
+meta {
+  name: scope
+  type: http
+  seq: 11
+}
+
+post {
+  url: http://localhost:8080/posts/scope
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdmF0YXJfaWQiOiIzNzE1NC8wdC0xIiwiYmlydGhkYXkiOiIiLCJkaXNwbGF5X25hbWUiOiLQmNC70YzQvdGD0YAg0KEuIiwiZW1haWwiOiJsZXltYW4wMTExQHlhbmRleC5ydSIsImV4cCI6MTgwMTU2NzUwNywiZ2VuZGVyIjoibWFsZSIsImlhdCI6MTc3MTkyODY3NywiaXNzIjoibG9naW4ueWFuZGV4LnJ1IiwianRpIjoiNTI2Y2UzMmEtZWMxMy00NTUyLWFhZjQtNGU3YjZhYWMwNGRjIiwibG9naW4iOiJsZXltYW4wMTExIiwibmFtZSI6ItCY0LvRjNC90YPRgCDQodGD0LvQtdC50LzQsNC90L7QsiIsInBzdWlkIjoiMS5BQTliWVEuUG4yNFBrYjFCV3c2cV9UNzZ4aVRCQS5SWGJtY3NlODA0UXM0Zkg4ZXZJZ19RIiwidWlkIjo4NTMwNzUyNjN9.DYlmzhWVxLFpW2A8FRPAbfZpR8LeAprQONGkkYyiy2s
+}
+
+body:json {
+  {
+    "latitude":55.75579833984375,
+    "longitude":37.6172981262207,
+    "distance":10,
+    "categories": []
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

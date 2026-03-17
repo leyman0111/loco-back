@@ -44,6 +44,10 @@ public class UserService {
         return StringUtils.hasText(email) ? userRepo.findByEmail(email) : Optional.empty();
     }
 
+    public Optional<User> findByUsername(String username) {
+        return userRepo.findByUsername(username);
+    }
+
     public User save(User user) {
         return userRepo.save(user);
     }

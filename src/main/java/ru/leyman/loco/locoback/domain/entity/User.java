@@ -27,6 +27,8 @@ public class User {
 
     private byte[] avatar;
 
+    private String password;
+
     public User(String externalId, String username,
                 String name, String email, Locale locale) {
         this.externalId = externalId;

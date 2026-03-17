@@ -1,4 +1,4 @@
-package ru.leyman.loco.locoback.service.security;
+package ru.leyman.loco.locoback.service.security.converters;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
@@ -22,7 +22,7 @@ public abstract class AbstractJwtAuthenticationConverter {
         return new JwtAuthenticationToken(source, authorities, user.getEmail());
     }
 
-    public User findOrCreate(Jwt jwt) {
+    private User findOrCreate(Jwt jwt) {
         var email = jwt.getClaimAsString("email");
         var user = userService.findByEmail(email).orElseGet(() -> {
             var externalId = jwt.getClaimAsString("uid");

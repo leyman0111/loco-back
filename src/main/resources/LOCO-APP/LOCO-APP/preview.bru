@@ -1,0 +1,28 @@
+meta {
+  name: preview
+  type: http
+  seq: 1
+}
+
+get {
+  url: http://localhost:8080/posts/previews/1
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdmF0YXJfaWQiOiIzNzE1NC8wdC0xIiwiYmlydGhkYXkiOiIiLCJkaXNwbGF5X25hbWUiOiLQmNC70YzQvdGD0YAg0KEuIiwiZW1haWwiOiJsZXltYW4wMTExQHlhbmRleC5ydSIsImV4cCI6MTgwMjUyODMwMiwiZ2VuZGVyIjoibWFsZSIsImlhdCI6MTc3MjI2NzgxMiwiaXNzIjoibG9naW4ueWFuZGV4LnJ1IiwianRpIjoiZjFiMDU1ZGQtNzQxYS00NGVkLWEwODgtZTY1NzMzNDQ1Njc0IiwibG9naW4iOiJsZXltYW4wMTExIiwibmFtZSI6ItCY0LvRjNC90YPRgCDQodGD0LvQtdC50LzQsNC90L7QsiIsInBzdWlkIjoiMS5BQTliWVEuUG4yNFBrYjFCV3c2cV9UNzZ4aVRCQS5SWGJtY3NlODA0UXM0Zkg4ZXZJZ19RIiwidWlkIjo4NTMwNzUyNjN9.qtwDi7FtSp2WljDVCUs-b3lL7A-hypUu5T6z69P4dkc
+}
+
+body:json {
+  {
+    "latitude":53.2222,
+    "longitude":52.3333,
+    "distance":1
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

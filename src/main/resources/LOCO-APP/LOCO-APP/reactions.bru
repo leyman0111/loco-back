@@ -1,0 +1,28 @@
+meta {
+  name: reactions
+  type: http
+  seq: 7
+}
+
+post {
+  url: http://localhost:8080/reactions
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdmF0YXJfaWQiOiIzNzE1NC8wdC0xIiwiYmlydGhkYXkiOiIiLCJkaXNwbGF5X25hbWUiOiLQmNC70YzQvdGD0YAg0KEuIiwiZW1haWwiOiJsZXltYW4wMTExQHlhbmRleC5ydSIsImV4cCI6MTgwMTU2NzUwNywiZ2VuZGVyIjoibWFsZSIsImlhdCI6MTc3MTkyODY3NywiaXNzIjoibG9naW4ueWFuZGV4LnJ1IiwianRpIjoiNTI2Y2UzMmEtZWMxMy00NTUyLWFhZjQtNGU3YjZhYWMwNGRjIiwibG9naW4iOiJsZXltYW4wMTExIiwibmFtZSI6ItCY0LvRjNC90YPRgCDQodGD0LvQtdC50LzQsNC90L7QsiIsInBzdWlkIjoiMS5BQTliWVEuUG4yNFBrYjFCV3c2cV9UNzZ4aVRCQS5SWGJtY3NlODA0UXM0Zkg4ZXZJZ19RIiwidWlkIjo4NTMwNzUyNjN9.DYlmzhWVxLFpW2A8FRPAbfZpR8LeAprQONGkkYyiy2s
+}
+
+body:json {
+  {
+    "postId":null,
+    "commentId":1,
+    "type":"FIRE"
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

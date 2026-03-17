@@ -1,0 +1,23 @@
+meta {
+  name: auth loco
+  type: http
+  seq: 12
+}
+
+post {
+  url: http://localhost:8080/auth
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "username":"leyman0111",
+    "password":"qweasdZXC"
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
