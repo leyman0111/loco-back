@@ -22,6 +22,7 @@ public interface PostMapper {
 
     PostDto map(Post post, List<Content> contents);
 
+    @Mapping(target = "authorAvatar", source = "author.avatar")
     PostMark mapToMark(Post post);
 
     PostPreview mapToPreview(Post post, List<Content> contents,

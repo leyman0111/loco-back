@@ -74,3 +74,5 @@ Thumbs.db
 
 # Deployment artifacts
 !/deploy/*.service
+/.mvn/
+/src/main/resources/LOCO-APP/LOCO-APP/

@@ -5,5 +5,7 @@ import ru.leyman.loco.locoback.domain.enums.PostCategory;
 /**
  * DTO для карты
  */
-public record PostMark(Long id, Float latitude, Float longitude, PostCategory category) {
+public record PostMark(Long id, Float latitude, Float longitude, PostCategory category,
+                       byte[] authorAvatar) {
+
 }
