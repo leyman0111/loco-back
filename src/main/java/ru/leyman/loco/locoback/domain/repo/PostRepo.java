@@ -31,4 +31,6 @@ public interface PostRepo extends JpaRepository<Post, Long> {
 
     List<Post> findAllByAuthorAndState(User author, PostState state);
 
+    List<Post> findAllByAuthor(User author);
+
 }

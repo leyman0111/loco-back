@@ -7,10 +7,7 @@ import ru.leyman.loco.locoback.domain.dto.PostDetails;
 import ru.leyman.loco.locoback.domain.dto.PostDto;
 import ru.leyman.loco.locoback.domain.dto.PostMark;
 import ru.leyman.loco.locoback.domain.dto.PostPreview;
-import ru.leyman.loco.locoback.domain.entity.Comment;
-import ru.leyman.loco.locoback.domain.entity.Content;
-import ru.leyman.loco.locoback.domain.entity.Post;
-import ru.leyman.loco.locoback.domain.entity.Reaction;
+import ru.leyman.loco.locoback.domain.entity.*;
 
 import java.util.List;
 

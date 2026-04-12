@@ -54,4 +54,11 @@ public class PostController {
         return service.update(postDto);
     }
 
+    @Operation(description = "Получение своих постов")
+    @GetMapping
+    public List<PostDto> getAllMine(@RequestParam(required = false) Boolean draft) {
+        log.info("Received getAllMine");
+        return service.getAllMine(draft);
+    }
+
 }

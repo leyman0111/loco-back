@@ -31,8 +31,7 @@ public class PostService {
     public List<PostMark> getByScope(Scope scope) {
         var categories = CollectionUtils.isEmpty(scope.categories()) ? PostCategory.ALL : scope.categories();
         return postRepo.getPostByLocation(scope.latitude(), scope.longitude(), scope.distance(), categories).stream()
-                .map(postMapper::mapToMark)
-                .toList();
+                .map(postMapper::mapToMark).toList();
     }
 
     public PostPreview getPreview(Long id) {
@@ -52,15 +51,15 @@ public class PostService {
 
     public PostDto create() {
         var user = userService.getCurrentUser();
-        return postRepo.findAllByAuthorAndState(user, PostState.CREATED).stream().findFirst()
-                .map(post -> {
+        var drafts = postRepo.findAllByAuthorAndState(user, PostState.CREATED).stream()
+                .peek(post -> {
                     var contents = contentRepo.findAllByPost(post);
-                    return postMapper.map(post, contents);
-                })
-                .orElseGet(() -> {
-                    var post = postRepo.save(new Post(user));
-                    return postMapper.map(post);
-                });
+                    contentRepo.deleteAll(contents);
+                }).toList();
+        postRepo.deleteAll(drafts);
+
+        var post = postRepo.save(new Post(user));
+        return postMapper.map(post);
     }
 
     public PostDto update(PostDto postDto) {
@@ -77,6 +76,24 @@ public class PostService {
 
     public Post get(Long id) {
         return postRepo.getReferenceById(id);
+    }
+
+    public List<PostDto> getAllMine(Boolean draft) {
+        var user = userService.getCurrentUser();
+        if (Boolean.TRUE.equals(draft)) {
+            return postRepo.findAllByAuthorAndState(user, PostState.CREATED).stream().limit(1)
+                    .map(post -> {
+                        var contents = contentRepo.findAllByPost(post);
+                        return postMapper.map(post, contents);
+                    }).toList();
+        }
+
+        return postRepo.findAllByAuthor(user).stream()
+                .filter(post -> !PostState.CREATED.equals(post.getState()))
+                .map(post -> {
+                    var contents = contentRepo.findAllByPost(post);
+                    return postMapper.map(post, contents);
+                }).toList();
     }
 
 }
