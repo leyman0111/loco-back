@@ -3,10 +3,8 @@ package ru.leyman.loco.locoback.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.util.CollectionUtils;
 import ru.leyman.loco.locoback.domain.dto.*;
 import ru.leyman.loco.locoback.domain.entity.Post;
-import ru.leyman.loco.locoback.domain.enums.PostCategory;
 import ru.leyman.loco.locoback.domain.enums.PostState;
 import ru.leyman.loco.locoback.domain.repo.CommentRepo;
 import ru.leyman.loco.locoback.domain.repo.ContentRepo;
@@ -29,8 +27,7 @@ public class PostService {
     private final UserService userService;
 
     public List<PostMark> getByScope(Scope scope) {
-        var categories = CollectionUtils.isEmpty(scope.categories()) ? PostCategory.ALL : scope.categories();
-        return postRepo.getPostByLocation(scope.latitude(), scope.longitude(), scope.distance(), categories).stream()
+        return postRepo.getPostByLocation(scope.latitude(), scope.longitude(), scope.distance()).stream()
                 .map(postMapper::mapToMark).toList();
     }
 
