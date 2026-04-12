@@ -38,6 +38,10 @@ public class ReactionService {
                 .toList();
     }
 
+    public void delete(Long id) {
+        reactionRepo.deleteById(id);
+    }
+
     private Optional<Reaction> find(ReactionDto reactionDto, Long authorId) {
         return Objects.nonNull(reactionDto.postId())
                 ? reactionRepo.findByPostIdAndAuthorId(reactionDto.postId(), authorId)

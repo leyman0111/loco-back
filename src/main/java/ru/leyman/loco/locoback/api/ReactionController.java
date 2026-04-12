@@ -28,9 +28,16 @@ public class ReactionController {
 
     @Operation(description = "Получить все рекции к посту")
     @GetMapping
-    public List<ReactionDto> getByPost(@RequestBody Long postId) {
+    public List<ReactionDto> getByPost(@RequestParam Long postId) {
         log.info("Received getByPost={}", postId);
         return service.getByPost(postId);
+    }
+
+    @Operation(description = "Удалить реакцию")
+    @DeleteMapping
+    public void delete(@RequestParam Long id) {
+        log.info("Received delete by id={}", id);
+        service.delete(id);
     }
 
 }
