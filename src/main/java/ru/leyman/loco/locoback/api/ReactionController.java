@@ -4,12 +4,11 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import ru.leyman.loco.locoback.domain.dto.ReactionDto;
 import ru.leyman.loco.locoback.service.ReactionService;
+
+import java.util.List;
 
 @Slf4j
 @Tag(name = "Реакции", description = "Раздел управления реакциями")
@@ -25,6 +24,13 @@ public class ReactionController {
     public ReactionDto upsert(@RequestBody ReactionDto reactionDto) {
         log.info("Received upsert by reactionDto={}", reactionDto);
         return service.upsert(reactionDto);
+    }
+
+    @Operation(description = "Получить все рекции к посту")
+    @GetMapping
+    public List<ReactionDto> getByPost(@RequestBody Long postId) {
+        log.info("Received getByPost={}", postId);
+        return service.getByPost(postId);
     }
 
 }

@@ -9,6 +9,7 @@ import ru.leyman.loco.locoback.domain.entity.User;
 import ru.leyman.loco.locoback.domain.repo.ReactionRepo;
 import ru.leyman.loco.locoback.mapper.ReactionMapper;
 
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -28,6 +29,13 @@ public class ReactionService {
         return this.find(reactionDto, user.getId())
                 .map(reaction -> update(reaction, reactionDto))
                 .orElseGet(() -> create(reactionDto, user));
+    }
+
+    public List<ReactionDto> getByPost(Long postId) {
+        var post = postService.get(postId);
+        return reactionRepo.findAllByPost(post).stream()
+                .map(reactionMapper::map)
+                .toList();
     }
 
     private Optional<Reaction> find(ReactionDto reactionDto, Long authorId) {

@@ -8,6 +8,8 @@ import ru.leyman.loco.locoback.domain.entity.Comment;
 import ru.leyman.loco.locoback.domain.repo.CommentRepo;
 import ru.leyman.loco.locoback.mapper.CommentMapper;
 
+import java.util.List;
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -29,6 +31,13 @@ public class CommentService {
 
     public Comment get(Long id) {
         return commentRepo.getReferenceById(id);
+    }
+
+    public List<CommentDto> getByPost(Long postId) {
+        var post = postService.get(postId);
+        return commentRepo.findAllByPost(post).stream()
+                .map(commentMapper::map)
+                .toList();
     }
 
 }
