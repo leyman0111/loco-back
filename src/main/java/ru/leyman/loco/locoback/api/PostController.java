@@ -27,10 +27,10 @@ public class PostController {
     }
 
     @Operation(description = "Получение поста для отображения внизу карты")
-    @GetMapping("previews/{id}")
-    public PostPreview getPreview(@PathVariable Long id) {
-        log.info("Received getPreview by id={}", id);
-        return service.getPreview(id);
+    @GetMapping("previews")
+    public List<PostPreview> getPreview(@RequestParam List<Long> ids) {
+        log.info("Received getPreview by id={}", ids);
+        return service.getPreview(ids);
     }
 
     @Operation(description = "Получение поста с комментариями")

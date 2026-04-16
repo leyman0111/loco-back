@@ -31,11 +31,13 @@ public class PostService {
                 .map(postMapper::mapToMark).toList();
     }
 
-    public PostPreview getPreview(Long id) {
-        var post = postRepo.findByIdAndState(id, PostState.PUBLISHED).orElseThrow();
-        var contents = contentRepo.findAllByPost(post);
-        var reactions = reactionRepo.findAllByPost(post);
-        return postMapper.mapToPreview(post, contents, reactions);
+    public List<PostPreview> getPreview(List<Long> ids) {
+        return postRepo.findAllByIdInAndState(ids, PostState.PUBLISHED).stream()
+                .map(post -> {
+                    var contents = contentRepo.findAllByPost(post);
+                    var reactions = reactionRepo.findAllByPost(post);
+                    return postMapper.mapToPreview(post, contents, reactions);
+                }).toList();
     }
 
     public PostDetails getDetails(Long id) {

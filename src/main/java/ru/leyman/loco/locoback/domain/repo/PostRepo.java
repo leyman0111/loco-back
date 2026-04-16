@@ -26,6 +26,8 @@ public interface PostRepo extends JpaRepository<Post, Long> {
 
     Optional<Post> findByIdAndState(Long id, PostState state);
 
+    List<Post> findAllByIdInAndState(List<Long> ids, PostState state);
+
     List<Post> findAllByAuthorAndState(User author, PostState state);
 
     List<Post> findAllByAuthor(User author);
