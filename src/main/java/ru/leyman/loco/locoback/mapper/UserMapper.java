@@ -14,6 +14,7 @@ public interface UserMapper {
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "email", ignore = true)
+    @Mapping(target = "avatar", ignore = true)
     void map(@MappingTarget User user, UserDto userDto);
 
     Author mapToAuthor(User user);

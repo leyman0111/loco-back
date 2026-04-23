@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import ru.leyman.loco.locoback.domain.dto.UserDto;
 import ru.leyman.loco.locoback.domain.entity.User;
+import ru.leyman.loco.locoback.domain.enums.ContentSize;
 import ru.leyman.loco.locoback.domain.repo.UserRepo;
 import ru.leyman.loco.locoback.mapper.UserMapper;
 
@@ -20,6 +21,7 @@ public class UserService {
 
     private final UserRepo userRepo;
     private final UserMapper userMapper;
+    private final ImageService imageService;
 
     public UserDto get() {
         return userMapper.map(this.getCurrentUser());
@@ -37,6 +39,7 @@ public class UserService {
             throw new RuntimeException();
         }
         userMapper.map(user, userDto);
+        user.setAvatar(imageService.resize(userDto.avatar(), ContentSize.SMALL));
         return userMapper.map(userRepo.save(user));
     }
 
