@@ -3,10 +3,11 @@ package ru.leyman.loco.locoback.domain.entity;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import ru.leyman.loco.locoback.domain.enums.ContentType;
 
 @Entity
-@Getter
+@Getter @Setter
 @NoArgsConstructor
 public class Content {
 

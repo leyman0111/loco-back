@@ -6,48 +6,55 @@ import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import ru.leyman.loco.locoback.domain.errors.ContentException;
 import ru.leyman.loco.locoback.service.FileService;
-import ru.leyman.loco.locoback.utils.FilenameUtil;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
-import java.util.Objects;
-import java.util.UUID;
 
 @Slf4j
 @Service
 public class LocalFileService implements FileService {
 
-    @Value("${filestore.local-store-path}")
-    private String storePath;
+    private final Path fileStorage;
 
-    @Override
-    public String upload(MultipartFile file) {
-        var ext = FilenameUtil.getExtension(Objects.requireNonNull(file.getOriginalFilename()));
-        Path filePath = Path.of(getFilename(ext));
-        try (InputStream in = file.getInputStream()) {
-            Files.copy(in, filePath, StandardCopyOption.REPLACE_EXISTING);
-            return filePath.toString();
+    public LocalFileService(@Value("${filestore.local-store-path}") String storePath) {
+        this.fileStorage = Paths.get(storePath).toAbsolutePath().normalize();
+        try {
+            Files.createDirectories(this.fileStorage);
         } catch (IOException e) {
-            log.error("Can't upload file", e);
-            throw new RuntimeException("Error on saving file: " + e);
+            throw new RuntimeException("Could not create the directory where the uploaded files will be stored", e);
         }
     }
 
     @Override
-    public Resource download(String filename) throws FileNotFoundException {
+    public Path create(String filename) {
+        return this.fileStorage.resolve(filename).normalize();
+    }
+
+    @Override
+    public Path upload(MultipartFile file, String filename) {
+        Path filePath = this.fileStorage.resolve(filename).normalize();
+        try (InputStream in = file.getInputStream()) {
+            Files.copy(in, filePath, StandardCopyOption.REPLACE_EXISTING);
+            return filePath;
+        } catch (IOException e) {
+            log.error("Can't upload file", e);
+            throw new ContentException("Не удалось сохранить изображение. Попробуйте позднее");
+        }
+    }
+
+    @Override
+    public Resource download(String filename) {
         Path filePath = Path.of(filename);
         try {
             return new ByteArrayResource(Files.readAllBytes(filePath));
-        } catch (FileNotFoundException e) {
-            throw e;
         } catch (IOException e) {
             log.error("Can't download file {}", filename, e);
-            return null;
+            throw new ContentException("Не удалось загрузить изображение. Попробуйте позднее");
         }
     }
 
@@ -59,11 +66,6 @@ public class LocalFileService implements FileService {
         } catch (IOException e) {
             log.error("Error on deleting file={}", filename, e);
         }
-    }
-
-    private String getFilename(String extension) {
-        return String.format(storePath + "%s.%s", UUID.randomUUID(),
-                Objects.requireNonNullElse(extension, "txt"));
     }
 
 }
