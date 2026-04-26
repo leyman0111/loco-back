@@ -49,14 +49,8 @@ public class PostService {
     }
 
     public PostDto create() {
+        delete();
         var user = userService.getCurrentUser();
-        var drafts = postRepo.findAllByAuthorAndState(user, PostState.CREATED).stream()
-                .peek(post -> {
-                    var contents = contentRepo.findAllByPost(post);
-                    contentRepo.deleteAll(contents);
-                }).toList();
-        postRepo.deleteAll(drafts);
-
         var post = postRepo.save(new Post(user));
         return postMapper.map(post);
     }
@@ -93,6 +87,16 @@ public class PostService {
                     var contents = contentRepo.findAllByPost(post);
                     return postMapper.map(post, contents);
                 }).toList();
+    }
+
+    public void delete() {
+        var user = userService.getCurrentUser();
+        var drafts = postRepo.findAllByAuthorAndState(user, PostState.CREATED).stream()
+                .peek(post -> {
+                    var contents = contentRepo.findAllByPost(post);
+                    contentRepo.deleteAll(contents);
+                }).toList();
+        postRepo.deleteAll(drafts);
     }
 
 }

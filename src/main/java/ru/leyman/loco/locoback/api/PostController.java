@@ -61,4 +61,11 @@ public class PostController {
         return service.getAllMine(draft);
     }
 
+    @Operation(description = "Удаление черновика поста")
+    @DeleteMapping
+    public void delete() {
+        log.info("Received delete");
+        service.delete();
+    }
+
 }
