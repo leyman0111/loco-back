@@ -7,7 +7,6 @@ import org.springframework.stereotype.Service;
 import ru.leyman.loco.locoback.domain.enums.ContentSize;
 import ru.leyman.loco.locoback.utils.FilenameUtils;
 
-import javax.imageio.ImageIO;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -28,8 +27,7 @@ public class ImageService {
         var path = fileService.create(filename);
 
         try {
-            var bufferedImage = ImageIO.read(originPath.toFile());
-            Thumbnails.of(bufferedImage)
+            Thumbnails.of(originPath.toFile())
                     .size(size.getLength(), size.getWidth())
                     .toFile(path.toFile());
             return path.toString();
@@ -44,6 +42,7 @@ public class ImageService {
              ByteArrayOutputStream out = new ByteArrayOutputStream()) {
             Thumbnails.of(in)
                     .size(size.getLength(), size.getWidth())
+                    .useExifOrientation(true)
                     .toOutputStream(out);
             return out.toByteArray();
         } catch (IOException e) {
