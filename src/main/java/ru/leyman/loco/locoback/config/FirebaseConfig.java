@@ -11,6 +11,7 @@ import org.springframework.core.io.ClassPathResource;
 import jakarta.annotation.PostConstruct;
 
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 
 @Slf4j
@@ -33,6 +34,8 @@ public class FirebaseConfig {
             }
         } catch (IOException e) {
             log.error("[Firebase] Failed to initialize Admin SDK: {}", e.getMessage());
+            log.error("Проверь расположение файла с приватным ключом Firebase сервиса: {}",
+                    firebaseServiceAccountPath);
         }
     }
 }
