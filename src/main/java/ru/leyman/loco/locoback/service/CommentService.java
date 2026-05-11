@@ -19,6 +19,7 @@ public class CommentService {
     private final CommentMapper commentMapper;
     private final UserService userService;
     private final PostService postService;
+    private final FcmService fcmService;
 
     public CommentDto create(CommentDto commentDto) {
         var user = userService.getCurrentUser();
@@ -26,7 +27,21 @@ public class CommentService {
         var comment = commentMapper.map(commentDto);
         comment.setAuthor(user);
         comment.setPost(post);
-        return commentMapper.map(commentRepo.save(comment));
+        var saved = commentMapper.map(commentRepo.save(comment));
+
+        // Send push notification to post author (skip if author comments their own post)
+        var postAuthor = post.getAuthor();
+        if (postAuthor != null && !postAuthor.getId().equals(user.getId())) {
+            var authorName = user.getUsername() != null ? user.getUsername() : "Кто-то";
+            var preview = commentDto.text() != null && commentDto.text().length() > 60
+                    ? commentDto.text().substring(0, 60) + "..."
+                    : commentDto.text();
+            fcmService.sendToUser(postAuthor,
+                    authorName + " прокомментировал ваш пост",
+                    preview);
+        }
+
+        return saved;
     }
 
     public Comment get(Long id) {

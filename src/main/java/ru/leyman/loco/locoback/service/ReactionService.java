@@ -10,6 +10,7 @@ import ru.leyman.loco.locoback.domain.repo.ReactionRepo;
 import ru.leyman.loco.locoback.mapper.ReactionMapper;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -23,6 +24,17 @@ public class ReactionService {
     private final UserService userService;
     private final PostService postService;
     private final CommentService commentService;
+    private final FcmService fcmService;
+
+    // Emoji map for reaction types (adjust keys to match your ReactionType enum)
+    private static final Map<String, String> REACTION_EMOJI = Map.of(
+            "FIRE", "🔥",
+            "HEART", "❤️",
+            "LIKE", "👍",
+            "WOW", "😮",
+            "LAUGH", "😂",
+            "SAD", "😢"
+    );
 
     public ReactionDto upsert(ReactionDto reactionDto) {
         var user = userService.getCurrentUser();
@@ -58,7 +70,20 @@ public class ReactionService {
         reaction.setAuthor(author);
         Optional.ofNullable(reactionDto.postId())
                 .map(postService::get)
-                .ifPresent(reaction::setPost);
+                .ifPresent(post -> {
+                    reaction.setPost(post);
+                    // Send push to post author (skip self-reaction)
+                    var postAuthor = post.getAuthor();
+                    if (postAuthor != null && !postAuthor.getId().equals(author.getId())) {
+                        var authorName = author.getUsername() != null ? author.getUsername() : "Кто-то";
+                        var emoji = reactionDto.type() != null
+                                ? REACTION_EMOJI.getOrDefault(reactionDto.type().name(), "👍")
+                                : "👍";
+                        fcmService.sendToUser(postAuthor,
+                                authorName + " отреагировал на ваш пост",
+                                emoji + " " + authorName + " поставил реакцию на ваш пост");
+                    }
+                });
         Optional.ofNullable(reactionDto.commentId())
                 .map(commentService::get)
                 .ifPresent(reaction::setComment);
