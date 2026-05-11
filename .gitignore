@@ -76,4 +76,4 @@ Thumbs.db
 !/deploy/*.service
 /.mvn/
 /src/main/resources/LOCO-APP/LOCO-APP/
-src/main/resources/firebase-service-account.json
+/firebase-service-account.json

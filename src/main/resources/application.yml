@@ -38,3 +38,6 @@ loco:
 
 filestore:
   local-store-path: ${LOCAL_STORE_PATH:../store/}
+
+fcm:
+  firebase-service-account-path: ${FIREBASE_SERVICE_ACCOUNT_PATH:./firebase-service-account.json}
