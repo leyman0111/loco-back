@@ -31,23 +31,32 @@ public class LocoAuthorizeService {
 
     public String authorize(AuthRequest authRequest) {
         return userService.findByEmail(authRequest.username())
-                .or(() -> userService.findByUsername(authRequest.username()))
+                .or(() -> {
+                    log.info("User not found by email, trying found by username: {}",
+                            authRequest.username());
+                    return userService.findByUsername(authRequest.username());
+                })
                 .filter(user -> passwordEncoder.matches(authRequest.password(), user.getPassword()))
                 .map(this::getJwtUserInfo)
                 .orElseThrow(UnauthorizedException::new);
     }
 
     private String getJwtUserInfo(User user) {
-        var key = Keys.hmacShaKeyFor(clientSecret.getBytes(StandardCharsets.UTF_8));
-        return Jwts.builder()
-                .subject(String.valueOf(user.getId()))
-                .issuer(issuer)
-                .claims(Map.of("uid", user.getId(),
-                        "login", user.getUsername(),
-                        "email", user.getEmail(),
-                        "name", user.getName()))
-                .signWith(key, SignatureAlgorithm.HS256)
-                .compact();
+        try {
+            var key = Keys.hmacShaKeyFor(clientSecret.getBytes(StandardCharsets.UTF_8));
+            return Jwts.builder()
+                    .subject(String.valueOf(user.getId()))
+                    .issuer(issuer)
+                    .claims(Map.of("uid", user.getId(),
+                            "login", user.getUsername(),
+                            "email", user.getEmail(),
+                            "name", user.getName()))
+                    .signWith(key, SignatureAlgorithm.HS256)
+                    .compact();
+        }  catch (Exception e) {
+            log.error(e.getMessage(), e);
+            throw new UnauthorizedException();
+        }
     }
 
 }
