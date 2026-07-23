@@ -1,0 +1,16 @@
+<?xml version="1.1" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.29.xsd">
+
+    <include file="changes/0001-create-users-table.xml" relativeToChangelogFile="true"/>
+    <include file="changes/0002-create-post-table.xml" relativeToChangelogFile="true"/>
+    <include file="changes/0003-create-comment-table.xml" relativeToChangelogFile="true"/>
+    <include file="changes/0004-create-reaction-table.xml" relativeToChangelogFile="true"/>
+    <include file="changes/0005-create-content-table.xml" relativeToChangelogFile="true"/>
+    <include file="changes/0006-create-device-tokens-table.xml" relativeToChangelogFile="true"/>
+    <include file="changes/0007-insert-test-user.xml" relativeToChangelogFile="true"/>
+
+</databaseChangeLog>

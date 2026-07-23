@@ -1,0 +1,28 @@
+<?xml version="1.1" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.29.xsd">
+
+    <changeSet id="0007-insert-test-user" author="loco-back">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0">SELECT COUNT(*) FROM users WHERE username = 'vibeuser'</sqlCheck>
+        </preConditions>
+
+        <insert tableName="users">
+            <column name="username" value="vibeuser"/>
+            <column name="name" value="Vibe User"/>
+            <column name="email" value="vibeuser@yandex.ru"/>
+            <!-- BCrypt hash of "0192837465" for the local LocoAuthorizeService password check -->
+            <column name="password" value="$2a$10$vb9F3RnK1UaQdYKQWKm9PuTTT0nxrfm5g3IK97VGq9HLPRsJ0r/aa"/>
+        </insert>
+
+        <rollback>
+            <delete tableName="users">
+                <where>username = 'vibeuser'</where>
+            </delete>
+        </rollback>
+    </changeSet>
+
+</databaseChangeLog>
