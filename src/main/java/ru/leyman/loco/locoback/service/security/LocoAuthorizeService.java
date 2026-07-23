@@ -44,7 +44,7 @@ public class LocoAuthorizeService {
     private String getJwtUserInfo(User user) {
         try {
             var key = Keys.hmacShaKeyFor(clientSecret.getBytes(StandardCharsets.UTF_8));
-            return Jwts.builder()
+            var token = Jwts.builder()
                     .subject(String.valueOf(user.getId()))
                     .issuer(issuer)
                     .claims(Map.of("uid", user.getId(),
@@ -53,6 +53,8 @@ public class LocoAuthorizeService {
                             "name", user.getName()))
                     .signWith(key, SignatureAlgorithm.HS256)
                     .compact();
+            log.info("Authorized user: {}", user.getUsername());
+            return token;
         }  catch (Exception e) {
             log.error(e.getMessage(), e);
             throw new UnauthorizedException();
