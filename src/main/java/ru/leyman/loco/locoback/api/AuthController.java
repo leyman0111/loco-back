@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 import ru.leyman.loco.locoback.domain.dto.AuthRequest;
+import ru.leyman.loco.locoback.domain.dto.AuthResponse;
 import ru.leyman.loco.locoback.domain.enums.AuthServer;
 import ru.leyman.loco.locoback.service.security.LocoAuthorizeService;
 import ru.leyman.loco.locoback.service.security.OAuthService;
@@ -31,7 +32,7 @@ public class AuthController {
 
     @Operation(description = "Базовая авторизация")
     @PostMapping
-    public String authorize(@RequestBody AuthRequest authRequest) {
+    public AuthResponse authorize(@RequestBody AuthRequest authRequest) {
         log.info("Received authorize by authRequest={}", authRequest);
         return locoAuthorizeService.authorize(authRequest);
     }

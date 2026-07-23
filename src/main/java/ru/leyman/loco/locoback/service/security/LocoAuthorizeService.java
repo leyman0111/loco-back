@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import ru.leyman.loco.locoback.domain.dto.AuthRequest;
+import ru.leyman.loco.locoback.domain.dto.AuthResponse;
 import ru.leyman.loco.locoback.domain.entity.User;
 import ru.leyman.loco.locoback.domain.errors.UnauthorizedException;
 import ru.leyman.loco.locoback.service.UserService;
@@ -29,7 +30,7 @@ public class LocoAuthorizeService {
     @Value("${loco.issuer-uri}")
     private String issuer;
 
-    public String authorize(AuthRequest authRequest) {
+    public AuthResponse authorize(AuthRequest authRequest) {
         return userService.findByEmail(authRequest.username())
                 .or(() -> {
                     log.info("User not found by email, trying found by username: {}",
@@ -38,6 +39,7 @@ public class LocoAuthorizeService {
                 })
                 .filter(user -> passwordEncoder.matches(authRequest.password(), user.getPassword()))
                 .map(this::getJwtUserInfo)
+                .map(AuthResponse::new)
                 .orElseThrow(UnauthorizedException::new);
     }
 
