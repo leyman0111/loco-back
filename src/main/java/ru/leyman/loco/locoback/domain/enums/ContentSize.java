@@ -6,7 +6,7 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 public enum ContentSize {
-    SMALL(64, 64), MEDIUM(256, 256), LARGE(512, 512);
+    SMALL(64, 64), MEDIUM(256, 256), LARGE(512, 512), ORIGINAL(0, 0);
 
     private final int length;
     private final int width;

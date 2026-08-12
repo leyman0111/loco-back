@@ -39,6 +39,7 @@ public class ContentService {
             return fileService.download(content.getOrigin());
         }
         return switch (size) {
+            case ORIGINAL -> fileService.download(content.getOrigin());
             case LARGE -> fileService.download(requireNonNullElse(content.getLarge(), content.getOrigin()));
             case MEDIUM -> fileService.download(requireNonNullElse(content.getMedium(), content.getOrigin()));
             case SMALL -> fileService.download(requireNonNullElse(content.getSmall(), content.getOrigin()));
