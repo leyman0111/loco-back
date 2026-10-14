@@ -1,0 +1,11 @@
+target/
+.git/
+.idea/
+.github/
+deploy/
+*.iml
+.env
+*.env
+docker-compose*.yml
+firebase-service-account.json
+CLAUDE.md

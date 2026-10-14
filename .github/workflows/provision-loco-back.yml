@@ -1,136 +1,112 @@
-name: Provision Loco-Back Server
+name: Provision loco-back server
 
+# Ручной, идемпотентный: можно запускать повторно (например, чтобы обновить секреты в .env).
 on:
   workflow_dispatch:
 
 jobs:
   provision:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Provision server
+      - name: Provision (Docker, /opt/app, .env, Firebase key, SELinux)
         uses: appleboy/ssh-action@v1
+        env:
+          APP_DIR: /opt/app
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          DB_READONLY_PASSWORD: ${{ secrets.DB_READONLY_PASSWORD }}
+          LOCO_CLIENT_SECRET: ${{ secrets.LOCO_CLIENT_SECRET }}
+          YANDEX_CLIENT_ID: ${{ secrets.YANDEX_CLIENT_ID }}
+          YANDEX_CLIENT_SECRET: ${{ secrets.YANDEX_CLIENT_SECRET }}
+          VK_CLIENT_ID: ${{ secrets.VK_CLIENT_ID }}
+          VK_CLIENT_SECRET: ${{ secrets.VK_CLIENT_SECRET }}
+          VK_REDIRECT_URI: ${{ secrets.VK_REDIRECT_URI }}
+          FIREBASE_SERVICE_ACCOUNT_B64: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_B64 }}
         with:
           host: ${{ secrets.SERVER_HOST }}
+          port: ${{ secrets.SERVER_PORT || 22 }}
           username: ${{ secrets.SERVER_USER }}
-          password: ${{ secrets.SERVER_PASSWORD }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          envs: APP_DIR,DB_PASSWORD,DB_READONLY_PASSWORD,LOCO_CLIENT_SECRET,YANDEX_CLIENT_ID,YANDEX_CLIENT_SECRET,VK_CLIENT_ID,VK_CLIENT_SECRET,VK_REDIRECT_URI,FIREBASE_SERVICE_ACCOUNT_B64
+          command_timeout: 20m
           script: |
-            set -euxo pipefail
+            set -euo pipefail
+            S=""; [ "$(id -u)" -ne 0 ] && S="sudo -n"
+            DEPLOY_USER="$(id -un)"
+            . /etc/os-release
+            echo "== OS: $PRETTY_NAME, user: $DEPLOY_USER"
 
-            APP="loco-back"
-            APP_DIR="/opt/${APP}"
-            LOG_DIR="/var/log/${APP}"
-            ENV_FILE="/etc/${APP}.env"
+            echo "== [1/6] Проверка секретов"
+            for v in DB_PASSWORD LOCO_CLIENT_SECRET YANDEX_CLIENT_SECRET VK_CLIENT_SECRET; do
+              [ -n "${!v}" ] || { echo "Секрет $v не задан"; exit 1; }
+            done
+            for v in DB_PASSWORD DB_READONLY_PASSWORD LOCO_CLIENT_SECRET YANDEX_CLIENT_ID YANDEX_CLIENT_SECRET VK_CLIENT_ID VK_CLIENT_SECRET VK_REDIRECT_URI; do
+              case "${!v}" in *"'"*) echo "Секрет $v не должен содержать одинарную кавычку"; exit 1;; esac
+            done
+            for v in LOCO_CLIENT_SECRET YANDEX_CLIENT_SECRET VK_CLIENT_SECRET; do
+              val="${!v}"
+              [ "${#val}" -ge 32 ] || { echo "Секрет $v короче 32 символов (нужен для HMAC-ключа)"; exit 1; }
+            done
 
-            echo "[1/7] Install Java 21 runtime"
-            apt-get update
-            apt-get install -y openjdk-21-jre-headless
-            java -version
+            echo "== [2/6] Docker CE"
+            if ! command -v docker >/dev/null 2>&1; then
+              $S dnf -y remove docker docker-client docker-client-latest docker-common docker-latest \
+                docker-latest-logrotate docker-logrotate docker-engine podman buildah runc || true
+              $S dnf -y install dnf-plugins-core
+              case "$ID" in rhel) REPO=rhel ;; *) REPO=centos ;; esac
+              URL="https://download.docker.com/linux/${REPO}/docker-ce.repo"
+              $S dnf config-manager --add-repo "$URL" || $S dnf config-manager addrepo --from-repofile="$URL"
+              $S dnf -y install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+            fi
+            $S systemctl enable --now docker
+            if [ "$DEPLOY_USER" != "root" ] && ! id -nG "$DEPLOY_USER" | grep -qw docker; then
+              $S usermod -aG docker "$DEPLOY_USER"
+              echo "Пользователь $DEPLOY_USER добавлен в группу docker (вступит в силу со следующего SSH-входа)"
+            fi
+            $S docker version --format 'Docker {{.Server.Version}}'
+            $S docker compose version
 
-            echo "[2/7] Ensure service user exists"
-            id -u "${APP}" >/dev/null 2>&1 || useradd -r -s /usr/sbin/nologin -d /nonexistent "${APP}"
-
-            echo "[3/7] Create directories"
-            mkdir -p "${APP_DIR}" "${LOG_DIR}"
-            chown root:root "${APP_DIR}"
-            chmod 755 "${APP_DIR}"
-            chown "${APP}:${APP}" "${LOG_DIR}"
-
-            echo "[4/7] Ensure PostgreSQL is available"
-            if ! command -v psql >/dev/null 2>&1; then
-              echo "ERROR: psql not found. PostgreSQL must already be installed on the server."
-              exit 1
+            echo "== [3/6] Старый systemd-сервис loco-back (если есть) — остановить, чтобы освободить порт 8080"
+            if systemctl list-unit-files loco-back.service >/dev/null 2>&1 && systemctl cat loco-back.service >/dev/null 2>&1; then
+              $S systemctl disable --now loco-back.service || true
             fi
 
-            echo "[5/7] Create DB role & database if needed"
-            DB_NAME="loco_back"
-            DB_USER="loco_back"
-            DB_PASS='${{ secrets.LOCO_BACK_DB_PASSWORD }}'   # Важно: пароль не должен содержать одинарных кавычек
+            echo "== [4/6] $APP_DIR и .env"
+            $S mkdir -p "$APP_DIR/config" "$APP_DIR/initdb"
+            $S chown "$DEPLOY_USER": "$APP_DIR" "$APP_DIR/initdb"
+            OLD_TAG="$(grep -s '^IMAGE_TAG=' "$APP_DIR/.env" | cut -d= -f2- || true)"
+            TMP="$(mktemp)"
+            {
+              q() { printf "%s='%s'\n" "$1" "$2"; }
+              q DB_NAME loco
+              q DB_USERNAME loco
+              q DB_SCHEMA loco
+              q DB_PASSWORD "$DB_PASSWORD"
+              q DB_READONLY_PASSWORD "$DB_READONLY_PASSWORD"
+              q LOCO_CLIENT_SECRET "$LOCO_CLIENT_SECRET"
+              q YANDEX_CLIENT_ID "$YANDEX_CLIENT_ID"
+              q YANDEX_CLIENT_SECRET "$YANDEX_CLIENT_SECRET"
+              q VK_CLIENT_ID "$VK_CLIENT_ID"
+              q VK_CLIENT_SECRET "$VK_CLIENT_SECRET"
+              q VK_REDIRECT_URI "$VK_REDIRECT_URI"
+              echo "IMAGE_TAG=${OLD_TAG:-latest}"
+            } > "$TMP"
+            $S install -m 600 -o "$DEPLOY_USER" "$TMP" "$APP_DIR/.env"
+            rm -f "$TMP"
 
-            sudo -u postgres psql -tc "SELECT 1 FROM pg_roles WHERE rolname='${DB_USER}'" | grep -q 1 || \
-              sudo -u postgres psql -c "CREATE ROLE ${DB_USER} WITH LOGIN PASSWORD '${DB_PASS}'"
+            echo "== [5/6] Firebase service account"
+            if [ -n "$FIREBASE_SERVICE_ACCOUNT_B64" ]; then
+              echo "$FIREBASE_SERVICE_ACCOUNT_B64" | base64 -d | $S tee "$APP_DIR/config/firebase-service-account.json" >/dev/null
+              # uid 10001 — пользователь app внутри контейнера
+              $S chown 10001:10001 "$APP_DIR/config/firebase-service-account.json"
+              $S chmod 400 "$APP_DIR/config/firebase-service-account.json"
+            else
+              echo "FIREBASE_SERVICE_ACCOUNT_B64 не задан — пуш-уведомления работать не будут"
+            fi
 
-            sudo -u postgres psql -tc "SELECT 1 FROM pg_database WHERE datname='${DB_NAME}'" | grep -q 1 || \
-              sudo -u postgres psql -c "CREATE DATABASE ${DB_NAME} OWNER ${DB_USER}"
+            echo "== [6/6] SELinux: разрешить nginx проксировать на 127.0.0.1:8080"
+            if command -v getenforce >/dev/null 2>&1 && [ "$(getenforce)" != "Disabled" ]; then
+              $S setsebool -P httpd_can_network_connect 1
+            fi
 
-            echo "[6/7] Create ${ENV_FILE}"
-            cat > "${ENV_FILE}" <<EOF
-            # Spring profile (если используешь)
-            SPRING_PROFILES_ACTIVE=prod
-
-            # DB (application.yaml uses DB_URL/DB_USERNAME/DB_PASSWORD/DB_SCHEMA)
-            DB_URL=jdbc:postgresql://127.0.0.1:5432/${DB_NAME}
-            DB_USERNAME=${DB_USER}
-            DB_PASSWORD=${DB_PASS}
-            DB_SCHEMA=${{ secrets.LOCO_BACK_DB_SCHEMA }}
-
-            # OAuth/JWT issuer
-            YANDEX_ISSUER_URL=${{ secrets.YANDEX_ISSUER_URL }}
-
-            # Yandex client creds
-            YANDEX_CLIENT_ID=${{ secrets.YANDEX_CLIENT_ID }}
-            YANDEX_CLIENT_SECRET=${{ secrets.YANDEX_CLIENT_SECRET }}
-            EOF
-
-            chown root:root "${ENV_FILE}"
-            chmod 600 "${ENV_FILE}"
-
-            echo "[7/7] Done"
-
-      - name: Upload systemd unit
-        uses: appleboy/scp-action@v1
-        with:
-          host: ${{ secrets.SERVER_HOST }}
-          username: ${{ secrets.SERVER_USER }}
-          password: ${{ secrets.SERVER_PASSWORD }}
-          source: deploy/loco-back.service
-          target: /etc/systemd/system/
-          strip_components: 1
-
-      - name: Enable service (do not start)
-        uses: appleboy/ssh-action@v1
-        with:
-          host: ${{ secrets.SERVER_HOST }}
-          username: ${{ secrets.SERVER_USER }}
-          password: ${{ secrets.SERVER_PASSWORD }}
-          script: |
-            set -euxo pipefail
-            systemctl daemon-reload
-            systemctl enable loco-back.service
-
-      - name: Final verification
-        uses: appleboy/ssh-action@v1
-        with:
-          host: ${{ secrets.SERVER_HOST }}
-          username: ${{ secrets.SERVER_USER }}
-          password: ${{ secrets.SERVER_PASSWORD }}
-          script: |
-            set -euxo pipefail
-
-            echo "=== Java ==="
-            java -version
-
-            echo "=== User ==="
-            id loco-back
-
-            echo "=== Dirs ==="
-            ls -la /opt/loco-back || true
-            ls -la /var/log/loco-back || true
-
-            echo "=== Jar (may be missing before deploy) ==="
-            ls -la /opt/loco-back/loco-back.jar || true
-
-            echo "=== Env file perms ==="
-            ls -la /etc/loco-back.env || true
-
-            echo "=== Unit ==="
-            systemctl cat loco-back.service || true
-            systemctl is-enabled loco-back.service || true
-            systemctl is-active loco-back.service || true
-            systemctl status loco-back.service --no-pager || true
-
-            echo "=== Recent logs (may be empty) ==="
-            journalctl -u loco-back.service -n 50 --no-pager || true
+            echo "== Готово"
+            ls -la "$APP_DIR" "$APP_DIR/config"

@@ -1,0 +1,63 @@
+# Прод-конфигурация. Лежит на сервере в /opt/app рядом с .env и initdb/.
+# Копируется туда workflow'ом deploy-loco-back.yml при каждом деплое.
+name: loco
+
+services:
+  db:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_NAME:-loco}
+      POSTGRES_USER: ${DB_USERNAME:-loco}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD is required}
+      DB_SCHEMA: ${DB_SCHEMA:-loco}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      # :z — метка SELinux, иначе контейнер не прочитает файлы с хоста
+      - ./initdb:/docker-entrypoint-initdb.d:ro,z
+    # Порт БД открыт ТОЛЬКО на loopback сервера: из интернета недоступен.
+    # Подключение клиентом (DBeaver) — через SSH-туннель на 127.0.0.1:${DB_HOST_PORT:-5433}.
+    ports:
+      - "127.0.0.1:${DB_HOST_PORT:-5433}:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    logging: &logging
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
+
+  app:
+    image: ghcr.io/leyman0111/loco-back:${IMAGE_TAG:-latest}
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DB_URL: jdbc:postgresql://db:5432/${DB_NAME:-loco}
+      DB_USERNAME: ${DB_USERNAME:-loco}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_SCHEMA: ${DB_SCHEMA:-loco}
+      LOCO_CLIENT_SECRET: ${LOCO_CLIENT_SECRET:?LOCO_CLIENT_SECRET is required}
+      LOCO_ISSUER: ${LOCO_ISSUER:-LOCO}
+      YANDEX_CLIENT_ID: ${YANDEX_CLIENT_ID:-}
+      YANDEX_CLIENT_SECRET: ${YANDEX_CLIENT_SECRET:?YANDEX_CLIENT_SECRET is required}
+      YANDEX_ISSUER_URL: ${YANDEX_ISSUER_URL:-login.yandex.ru}
+      VK_CLIENT_ID: ${VK_CLIENT_ID:-}
+      VK_CLIENT_SECRET: ${VK_CLIENT_SECRET:?VK_CLIENT_SECRET is required}
+      VK_REDIRECT_URI: ${VK_REDIRECT_URI:-}
+      VK_ISSUER: ${VK_ISSUER:-VK}
+    volumes:
+      - filestore:/data/store
+      - ./config:/app/config:ro,z
+    ports:
+      # только localhost — снаружи доступ через nginx хоста
+      - "127.0.0.1:8080:8080"
+    logging: *logging
+
+volumes:
+  pgdata:
+  filestore:
